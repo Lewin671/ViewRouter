@@ -37,9 +37,9 @@ class Router(private val mActivity: Activity) {
             mActivity.setContentView(mRootView)
         } else {
             mRootView?.addView(page.view, params)
+            ChangeHandler().performChange(mRootView!!, topPage.view, page.view, true)
         }
 
-        ChangeHandler().performChange(mRootView!!, topPage?.view, page.view, true)
 
         mBackStack.lastOrNull()?.onPause()
         page.onResume()
