@@ -10,6 +10,7 @@ import androidx.core.view.size
 class Router(private val mActivity: Activity) {
     private val mBackStack: ArrayDeque<Page> = ArrayDeque()
     private var mRootView: ViewGroup? = null
+    private var lock = false
 
     init {
         val activity: Activity = mActivity
@@ -21,6 +22,10 @@ class Router(private val mActivity: Activity) {
     }
 
     fun push(page: Page) {
+        if (lock) {
+            return
+        }
+        lock = true
         // 创建布局参数并设置为MATCH_PARENT
         // 创建布局参数并设置为MATCH_PARENT
         val params = FrameLayout.LayoutParams(
@@ -35,9 +40,20 @@ class Router(private val mActivity: Activity) {
                 this.addView(page.view, params)
             }
             mActivity.setContentView(mRootView)
+            lock = false
         } else {
             mRootView?.addView(page.view, params)
-            ChangeHandler().performChange(mRootView!!, topPage.view, page.view, true)
+            ChangeHandler().performChange(
+                mRootView!!,
+                topPage.view,
+                page.view,
+                true,
+                object : AnimationListener {
+                    override fun onAnimationEnd() {
+                        lock = false
+                    }
+
+                })
         }
 
 
@@ -48,6 +64,11 @@ class Router(private val mActivity: Activity) {
     }
 
     fun pop() {
+        if (lock) {
+            return
+        }
+        lock = true
+
         if (mBackStack.isEmpty()) {
             return
         }
@@ -66,6 +87,7 @@ class Router(private val mActivity: Activity) {
 
                     topPage.setRouter(null)
                     topPage.destroy()
+                    lock = false
                 }
             })
 
